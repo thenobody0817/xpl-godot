@@ -143,9 +143,9 @@ vec4 blend_linear_light_add_sub(vec4 b, vec4 bl, float o) {
 	return mix(b, bl + vec4(2.0) * b - vec4(1.0), o);
 }
 
-// Dispatch table: `mode` indexes the 24 BlendOperation_* functions in the order
+// Dispatch table: `mode` indexes the 23 BlendOperation_* functions in the order
 // they appear in XPostProcessing.hlsl. Keeping one entry point lets a single
-// effect shader expose "blend mode" as a dropdown instead of 24 shaders.
+// effect shader expose "blend mode" as a dropdown instead of 23 shaders.
 vec4 blend_operation(int mode, vec4 b, vec4 bl, float o) {
 	if (mode == 0)  { return blend_burn(b, bl, o); }
 	if (mode == 1)  { return blend_darken(b, bl, o); }

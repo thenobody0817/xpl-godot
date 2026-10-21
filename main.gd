@@ -90,6 +90,8 @@ var _t := 0.0
 var _shot_path := ""
 var _shot_frames := -1
 var _hide_ui := false
+var _enable_all := false
+var _only_id := ""
 
 
 func _ready() -> void:
@@ -104,15 +106,15 @@ func _ready() -> void:
 		_shot_path = args[idx + 1] if idx + 1 < args.size() else "user://shot.png"
 		_shot_frames = 0
 
+	# --all enables every layer, --only keeps a single layer enabled. The layer
+	# list does not exist yet, so both are only recorded here and applied when
+	# the chain is built.
 	if args.has("--all"):
-		for i in _layers.size():
-			_layers[i]["on"] = true
+		_enable_all = true
 
 	var only := args.find("--only")
 	if only != -1 and only + 1 < args.size():
-		var want := args[only + 1]
-		for i in _layers.size():
-			_layers[i]["on"] = _layers[i]["fx"]["id"] == want
+		_only_id = args[only + 1]
 
 	_hide_ui = args.has("--noui")
 
@@ -200,14 +202,22 @@ func _build_chain() -> void:
 		var mat := ShaderMaterial.new()
 		mat.shader = load(fx["shader"])
 
+		# Initial state of the layer: the registry default, overridden by
+		# --all / --only when they were passed on the command line.
+		var on: bool = fx["on"]
+		if _enable_all:
+			on = true
+		elif _only_id != "":
+			on = fx["id"] == _only_id
+
 		var rect := ColorRect.new()
 		rect.material = mat
 		rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 		rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		rect.visible = fx["on"]
+		rect.visible = on
 		add_child(rect)
 
-		var entry := {"rect": rect, "mat": mat, "fx": fx, "on": fx["on"]}
+		var entry := {"rect": rect, "mat": mat, "fx": fx, "on": on}
 		_layers.append(entry)
 
 		for p in fx["params"]:
